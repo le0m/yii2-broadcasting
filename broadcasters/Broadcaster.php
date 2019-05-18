@@ -1,11 +1,18 @@
 <?php
 
-namespace mkiselev\broadcasting\broadcasters;
+namespace le0m\broadcasting\broadcasters;
 
-use mkiselev\broadcasting\helpers\StrHelper;
+use le0m\broadcasting\utils\StrHelper;
 use yii\base\Component;
 use yii\web\ForbiddenHttpException;
 
+
+/**
+ * Abstract class for {@see BroadcasterInterface}.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ * @author Leo Mainardi <mainardi.leo@gmail.com>
+ */
 abstract class Broadcaster extends Component implements BroadcasterInterface
 {
     /**
@@ -14,6 +21,7 @@ abstract class Broadcaster extends Component implements BroadcasterInterface
      * @var array
      */
     public $channels;
+
 
     /**
      * Register a channel authenticator.
@@ -83,6 +91,9 @@ abstract class Broadcaster extends Component implements BroadcasterInterface
     {
         preg_match('/^' . preg_replace('/\{(.*?)\}/', '(?<$1>[^\.]+)', $pattern) . '/', $channel, $keys);
 
+        // remove full match, keep only capture groups
+        array_shift($keys);
+
         return $keys;
     }
 
@@ -98,5 +109,4 @@ abstract class Broadcaster extends Component implements BroadcasterInterface
             return (string)$channel;
         }, $channels);
     }
-
 }

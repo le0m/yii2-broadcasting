@@ -1,7 +1,14 @@
 <?php
 
-namespace mkiselev\broadcasting\channels;
 
+namespace le0m\broadcasting\channels;
+
+
+/**
+ * Presence Channel class.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
 class PresenceChannel extends Channel
 {
     /**

@@ -1,13 +1,19 @@
 <?php
 
-namespace mkiselev\broadcasting\broadcasters;
 
-use mkiselev\broadcasting\helpers\StrHelper;
+namespace le0m\broadcasting\broadcasters;
+
+use le0m\broadcasting\utils\StrHelper;
 use yii\di\Instance;
 use yii\helpers\ArrayHelper;
-use yii\redis\Connection;
 use yii\web\ForbiddenHttpException;
 
+
+/**
+ * Broadcaster implementation for Redis channels.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
 class RedisBroadcaster extends Broadcaster
 {
     /**
@@ -17,6 +23,12 @@ class RedisBroadcaster extends Broadcaster
      */
     public $redis = 'redis';
 
+
+    /**
+     * {@inheritdoc}
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
     public function init()
     {
         $this->redis = Instance::ensure($this->redis);
@@ -82,6 +94,4 @@ class RedisBroadcaster extends Broadcaster
             $this->redis->publish($channel, $payload);
         }
     }
-
 }
-

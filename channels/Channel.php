@@ -1,7 +1,14 @@
 <?php
 
-namespace mkiselev\broadcasting\channels;
 
+namespace le0m\broadcasting\channels;
+
+
+/**
+ * Base Channel class.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
 class Channel
 {
     /**
@@ -10,6 +17,7 @@ class Channel
      * @var string
      */
     public $name;
+
 
     /**
      * Create a new channel instance
@@ -30,5 +38,4 @@ class Channel
     {
         return $this->name;
     }
-
 }

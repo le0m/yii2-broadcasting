@@ -1,8 +1,15 @@
 <?php
 
-namespace mkiselev\broadcasting\broadcasters;
 
-class NullBroadcaster extends Broadcaster
+namespace le0m\broadcasting\broadcasters;
+
+
+/**
+ * Broadcaster implementation that sends messages to /dev/null.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
+class NullBroadcaster
 {
     /**
      * {@inheritdoc}
@@ -24,5 +31,4 @@ class NullBroadcaster extends Broadcaster
     public function broadcast(array $channels, $event, array $payload = [])
     {
     }
-
 }

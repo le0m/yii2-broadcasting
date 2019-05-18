@@ -1,22 +1,42 @@
 <?php
 
-namespace mkiselev\broadcasting\events;
 
-use mkiselev\broadcasting\Module;
+namespace le0m\broadcasting;
+
 use ReflectionClass;
 use ReflectionProperty;
 use Yii;
-use yii\base\Object;
+use yii\base\BaseObject;
+
 
 /**
- * @property bool toOthers
+ * Base Broadcast Event class.
+ *
+ * @property bool $toOthers Whether to send message only to other users in the channel
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ * @author Leo Mainardi <mainardi.leo@gmail.com>
  */
-abstract class BroadcastEvent extends Object
+abstract class BroadcastEvent extends BaseObject
 {
     /*
      * Is it necessary to exclude the current user from the broadcast's recipients
      */
     private $_toOthers = false;
+
+
+    /**
+     * Get the broadcast component
+     *
+     * @return \le0m\broadcasting\BroadcastManager
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function getBroadcastManagerInstance()
+    {
+        /** @var \le0m\broadcasting\BroadcastManager $comp */
+        $comp = Yii::$app->get('broadcasting');
+        return $comp;
+    }
 
     /**
      * @param bool $value
@@ -58,6 +78,7 @@ abstract class BroadcastEvent extends Object
      * Get the data to broadcast
      *
      * @return array
+     * @throws \ReflectionException
      */
     public function broadcastWith()
     {
@@ -79,10 +100,9 @@ abstract class BroadcastEvent extends Object
     final public function broadcast()
     {
         try {
-            Module::getInstance()->getBroadcastManagerInstance()->dispatchEvent($this);
+            $this->getBroadcastManagerInstance()->dispatchEvent($this);
         } catch (\Exception $e) {
             Yii::error($e);
         }
     }
-
 }

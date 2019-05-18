@@ -1,23 +1,21 @@
 Yii2-broadcasting
 =================
-Websocket broadcasting module
 
-[![Latest Stable Version](https://poser.pugx.org/mkiselev/yii2-broadcasting/v/stable?format=flat-square)](https://packagist.org/packages/mkiselev/yii2-broadcasting)
-[![Total Downloads](https://poser.pugx.org/mkiselev/yii2-broadcasting/downloads?format=flat-square)](https://packagist.org/packages/mkiselev/yii2-broadcasting)
-[![Latest Unstable Version](https://poser.pugx.org/mkiselev/yii2-broadcasting/v/unstable?format=flat-square)](https://packagist.org/packages/mkiselev/yii2-broadcasting)
-[![License](https://poser.pugx.org/mkiselev/yii2-broadcasting/license?format=flat-square)](https://packagist.org/packages/mkiselev/yii2-broadcasting)
-[![Monthly Downloads](https://poser.pugx.org/mkiselev/yii2-broadcasting/d/monthly?format=flat-square)](https://packagist.org/packages/mkiselev/yii2-broadcasting)
+[![Latest Stable Version](https://poser.pugx.org/le0m/yii2-broadcasting/version)](https://packagist.org/packages/le0m/yii2-broadcasting)
+[![License](https://poser.pugx.org/le0m/yii2-broadcasting/license)](https://packagist.org/packages/le0m/yii2-broadcasting)
+[![Monthly Downloads](https://poser.pugx.org/le0m/yii2-broadcasting/d/monthly)](https://packagist.org/packages/le0m/yii2-broadcasting)
+[![Total Downloads](https://poser.pugx.org/le0m/yii2-broadcasting/downloads)](https://packagist.org/packages/le0m/yii2-broadcasting)
 
-This module is made under inspiration of laravel echo and compatible with libraries.
+This component a continuation of [MKiselev/yii2-broadcasting](https://github.com/MKiselev/yii2-broadcasting). It has been re-organized and udpated to work with Yii2 2.0.16.
 
-There are several broadcast tools available for your choice:
+You can use it to handle notifications through a websocket.
 
-1) [NullBroadcaster](broadcasters/NullBroadcaster.php) Doing nothing, just a stub
-2) [LogBroadcaster](broadcasters/LogBroadcaster.php) Broadcast events to application log
-3) [RedisBroadcaster](broadcasters/RedisBroadcaster.php) Broadcast by Redis using Pub/Sub feature (required [yii2-redis](https://github.com/yiisoft/yii2-redis))
-4) RatchetBroadcaster (coming soon...)
-5) PusherBroadcaster Broadcast by using pusher.com (coming soon...)
+Requirements
+------------
 
+- a working instance of [laravel-echo-server](https://github.com/tlaverdure/laravel-echo-server), to handle the Socket.io server and channel authentication
+- [yiisoft/yii2-redis](https://github.com/yiisoft/yii2-redis) is installed by this package, for sharing messages with Socket.io server through Redis
+- [Laravel Echo](https://github.com/laravel/echo) and [socket.io-client](https://github.com/socketio/socket.io-client) on the frontend, to open the websocket and listen for notifications
 
 Installation
 ------------
@@ -27,101 +25,188 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-composer require --prefer-dist mkiselev/yii2-broadcasting "*"
+php composer.phar require --prefer-dist le0m/yii2-broadcasting:"~0.1"
 ```
 
 or add
 
 ```
-"mkiselev/yii2-broadcasting": "*"
+"le0m/yii2-broadcasting": "~0.1."
 ```
 
-to the require section of your `composer.json` file.
+to the require section of your composer.json.
 
+Configuration
+-------------
 
-Application configuration
--------------------------
-Configure module for use some broadcaster and configure channels auth callbacks:
+Configure the component to use a broadcaster:
+
 ```php
-'bootstrap' => ['broadcasting'],
 'modules' => [
+    // configure a redis connection
+    'redis' => [
+        'class' => 'yii\redis\Connection',
+        'hostname' => 'localhost',
+        'port' => 6379,
+        'database' => 0,
+    ],
     'broadcasting' => [
-        'class' => \mkiselev\broadcasting\Module::class,
+        'class' => 'le0m\broadcasting\BroadcastManager',
         'broadcaster' => [
-            'class' => \mkiselev\broadcasting\broadcasters\RedisBroadcaster::class,
-            // By default will be used redis application component, but you can configure as you want
-            'redis' => [
-                'class' => \yii\redis\Connection::class,
-            ],
-            // Configure auth callback for private and presitance chanells
+            'class' => 'le0m\broadcasting\broadcasters\RedisBroadcaster',
+            // use the redis connection component (default) or define a new one
+            'redis' => 'redis',
             'channels' => [
-                'signal' => function (\yii\web\User $user) {
-                    return $user->can('something');
+                // authorization callback for private and presence channels
+                'comments.{postId}' => function (yii\web\User $user, $postId) {
+                    // use basic roles or RBAC
+                    return $user->can('doSomething', ['post' => $postId]);
                 },
             ],
         ],
-    ],
-],
+    ]
+]
 ```
 
+There are several broadcast tools available for your choice:
 
-Socket.io server configuration
-------------------------------
-This module is compilable with [laravel-echo-server](https://github.com/tlaverdure/laravel-echo-server)
-
-Please follow to laravel-echo-server instructions to install and run them.
-
+1) [NullBroadcaster](broadcasters/NullBroadcaster.php) Doing nothing, just a stub
+2) [LogBroadcaster](broadcasters/LogBroadcaster.php) Broadcast events to application log
+3) [RedisBroadcaster](broadcasters/RedisBroadcaster.php) Broadcast by Redis using Pub/Sub feature
 
 Usage
 -----
 
-### Server side
-Write your event extended by \mkiselev\broadcasting\events\BroadcastEvent like this:
-```php
-<?php
+### Setup Laravel Echo Server
 
+See [docs](docs/laravel-echo-server.md).
+
+### Server side
+
+Add the action to authorize users access to private and presence channels:
+
+```php
+class NotificationController extends Controller
+{
+    // ...
+    
+    public function behaviors()
+    {
+        return [
+            // ...
+            'authenticator' => [
+                // define your authenticator behavior
+                'class' => HttpBearerAuth::class,
+            ]
+        ];
+    }
+    
+    public function actions()
+    {
+        return [
+            'auth' => [
+                'class' => 'le0m\broadcasting\actions\AuthAction'
+            ]
+        ];
+    }
+    
+    // ...
+}
+```
+
+Define a new event to broadcast by extending `le0m\broadcasting\BroadcastEvent`, the public properties you define will be sent as message payload:
+
+```php
 namespace common\models;
 
-use mkiselev\broadcasting\channels\PrivateChannel;
-use mkiselev\broadcasting\events\BroadcastEvent;
+use le0m\broadcasting\channels\PrivateChannel;
+use le0m\broadcasting\BroadcastEvent;
 
-class SignalEvent extends BroadcastEvent
+class MessageEvent extends BroadcastEvent
 {
-    public $someParam = 42;
+    public $text;
+    public $author;
+    public $time;
+    
+    private $_postId;
+
 
     public function broadcastOn()
     {
-        return new PrivateChannel('signal');
+        return new PrivateChannel('comments.' . $this->getPostId());
     }
 
     public function broadcastAs()
     {
         return 'new';
     }
+    
+    public function getPostId()
+    {
+        return $this->_postId;
+    }
+    
+    public function setPostId($postId) {
+        $this->_postId = $postId;
+    }
 }
 ```
 
-And broadcast it somewhere:
+And then broadcast it when needed:
+
 ```php
-(new common\models\SignalEvent(['someParam' => 146]))->toOthers()->broadcast();
+$event = new MessageEvent([
+    'text' => $text,
+    'author' => $user->username,
+    'time' => time()
+]);
+$event->toOthers()->broadcast();
 ```
 
+The `toOthers` flag is used to broadcast a message to all channel's users _except_ the sender. The socket ID header is used to exclude the sender.
 
 ### Client side
-Register mkiselev\broadcasting\assets\EchoAsset
-import socket.io library https://github.com/tlaverdure/laravel-echo-server#socketio-client-library
+
+Import and initialize `Echo`, then start listening for notifications:
 
 ```js
-window.io = io;
-window.Echo = new Echo({
-    broadcaster: 'socket.io',
-    host: window.location.hostname + ':6001'
-});
+import Echo from 'laravel-echo'
+import io from 'socket.io-client'
 
-Echo.channel('signal')
-    .listen('.new', function(e) {
-        console.log(e.someParam);
-    });
+let postId = 13;
+const echo = new Echo({
+  broadcaster: 'socket.io', // will default to port 6001 of host
+  host: window.location.hostname,
+  authEndpoint: '/api/rest/v1/notification/auth', // this can be a whole URL
+  client: io, // not needed if `io` is globally defined
+  auth: {
+    headers: {
+      Authorization: `Bearer ...` // set headers needed for the authorization request to private and presence channels
+    }
+  },
+  transports: ['websocket', 'polling'] // give websocket precedence
+})
+
+// attach connect event listener, to wait for a socket ID
+this.echo.connector.socket.on('connect', () => {
+  // console.log(`internal socket id:`, this.echo.connector.socket.id)
+  console.log(`socket connected with ID:`, this.echo.connector.socketId())
+
+  // attach listen events
+  this.echo
+    .private(`comments.${postId}`)
+    // the initial dot is to ignore event namespace (derived from backend event class)
+    .listen('.new', (event) => {
+      console.log(`received comment from Echo:`, event)
+    })
+})
 ```
 
-#### [CHANGELOG](CHANGELOG.md)
+Here we wait for the `connect` event of Socket.io connector, to obtain a socket ID before attaching our callbacks.
+
+Other
+-----
+
+- [Echo Server with Docker](docs/laravel-echo-server.md) (bottom)
+- [references](docs/references.md)
+- [changelog](CHANGELOG.md)

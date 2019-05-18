@@ -1,10 +1,16 @@
 <?php
 
-namespace mkiselev\broadcasting\broadcasters;
+namespace le0m\broadcasting\broadcasters;
 
 use Yii;
 
-class LogBroadcaster extends Broadcaster
+
+/**
+ * Broadcaster implementation that sends messages to log targets.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
+class LogBroadcaster
 {
     /**
      * {@inheritdoc}
@@ -29,9 +35,8 @@ class LogBroadcaster extends Broadcaster
 
         $payload = json_encode($payload, JSON_PRETTY_PRINT);
 
-        $massage = 'Broadcasting [' . $event . '] on channels [' . $channels . '] with payload:' . PHP_EOL . $payload;
+        $message = 'Broadcasting [' . $event . '] on channels [' . $channels . '] with payload:' . PHP_EOL . $payload;
 
-        Yii::info($massage, __METHOD__);
+        Yii::info($message, __METHOD__);
     }
-
 }

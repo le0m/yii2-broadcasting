@@ -1,7 +1,14 @@
 <?php
 
-namespace mkiselev\broadcasting\channels;
 
+namespace le0m\broadcasting\channels;
+
+
+/**
+ * Private Channel class.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
 class PrivateChannel extends Channel
 {
     /**

@@ -1,7 +1,13 @@
 <?php
 
-namespace mkiselev\broadcasting\broadcasters;
+namespace le0m\broadcasting\broadcasters;
 
+
+/**
+ * Interface for Broadcaster component.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
 interface BroadcasterInterface
 {
     /**
@@ -31,5 +37,4 @@ interface BroadcasterInterface
      * @return void
      */
     public function broadcast(array $channels, $event, array $payload = []);
-
 }

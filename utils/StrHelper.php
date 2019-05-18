@@ -1,7 +1,13 @@
 <?php
 
-namespace mkiselev\broadcasting\helpers;
+namespace le0m\broadcasting\utils;
 
+
+/**
+ * Helper class.
+ *
+ * @author Maksim Kiselev <maks280795@yandex.ru>
+ */
 class StrHelper
 {
     /**
@@ -16,6 +22,7 @@ class StrHelper
         if ($pattern == $value) {
             return true;
         }
+
         $pattern = preg_quote($pattern, '#');
         // Asterisks are translated into zero-or-more regular expression wildcards
         // to make it convenient to check if the strings starts with the given
@@ -24,7 +31,6 @@ class StrHelper
 
         return (bool)preg_match('#^' . $pattern . '\z#u', $value);
     }
-
     /**
      * Determine if a given string starts with a given substring.
      *
@@ -42,7 +48,6 @@ class StrHelper
 
         return false;
     }
-
     /**
      * Replace the first occurrence of a given value in the string.
      *
@@ -56,6 +61,7 @@ class StrHelper
         if ($search == '') {
             return $subject;
         }
+
         $position = strpos($subject, $search);
         if ($position !== false) {
             return substr_replace($subject, $replace, $position, strlen($search));
@@ -63,5 +69,4 @@ class StrHelper
 
         return $subject;
     }
-
 }
